@@ -1,4 +1,5 @@
 import { LookupError, lookupProduct } from './catalog.js';
+import { handlePhoto } from './photo.js';
 
 const cooldowns = new Map();
 const json = (body, status = 200, headers = {}) => Response.json(body, {
@@ -37,6 +38,7 @@ export default {
   async fetch(request, env, context) {
     const path = new URL(request.url).pathname;
     if (path === '/api/product') return handleLookup(request, { cache: caches.default, waitUntil: promise => context.waitUntil(promise) });
+    if (path === '/api/photo') return handlePhoto(request);
     if (path.startsWith('/api/')) return json({ error: 'Unknown lookup endpoint.' }, 404);
     return env.ASSETS.fetch(request);
   },

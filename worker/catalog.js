@@ -69,7 +69,7 @@ export function parseProduct(html, item) {
   };
 }
 
-async function readLimited(response, maxBytes) {
+export async function readLimited(response, maxBytes) {
   if (Number(response.headers.get('content-length')) > maxBytes) {
     await response.body?.cancel();
     throw new LookupError('Ace returned an unusually large response. Please try again later.');
@@ -93,7 +93,7 @@ async function readLimited(response, maxBytes) {
   return bytes;
 }
 
-async function request(url, fetcher) {
+export async function request(url, fetcher, allowedRedirect = () => true) {
   // Follow only redirects within the original host; do not forward cookies or authorization.
   const original = new URL(url);
   const signal = AbortSignal.timeout(12000);
@@ -104,7 +104,7 @@ async function request(url, fetcher) {
     });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const next = new URL(response.headers.get('location') || '', url);
-      if (!response.headers.get('location') || next.protocol !== 'https:' || next.host !== original.host) {
+      if (!response.headers.get('location') || next.protocol !== 'https:' || next.host !== original.host || next.username || next.password || !allowedRedirect(next.href)) {
         await response.body?.cancel();
         throw new LookupError('Ace redirected this item to an unsupported destination. Enter its details manually.');
       }

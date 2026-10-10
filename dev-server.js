@@ -1,13 +1,19 @@
 import { createServer } from 'node:http';
 import { createServer as createViteServer } from 'vite';
 import { handleLookup } from './worker/index.js';
+import { handlePhoto } from './worker/photo.js';
 
 // Run the same lookup handler locally while Vite serves the application.
 const args = process.argv.slice(2);
 const api = createServer(async (incoming, outgoing) => {
   const request = new Request(`http://127.0.0.1:8788${incoming.url}`, { method: incoming.method });
   let response;
-  try { response = await handleLookup(request); }
+  try {
+    const path = new URL(request.url).pathname;
+    response = path === '/api/photo' ? await handlePhoto(request)
+      : path === '/api/product' ? await handleLookup(request)
+      : Response.json({ error: 'Unknown endpoint.' }, { status: 404 });
+  }
   catch { response = Response.json({ error: 'Lookup is unavailable. Please enter details manually.' }, { status: 502 }); }
   outgoing.writeHead(response.status, Object.fromEntries(response.headers));
   outgoing.end(Buffer.from(await response.arrayBuffer()));
