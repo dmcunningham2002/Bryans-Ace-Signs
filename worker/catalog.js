@@ -2,7 +2,12 @@ const ACE_ORIGIN = 'https://www.acehardware.com';
 export const TARGET_STORE = "Bryan's Ace Hardware · Keystone Heights";
 
 export class LookupError extends Error {
-  constructor(message, status = 502) { super(message); this.status = status; }
+  constructor(message, status = 502, details = {}) {
+    super(message);
+    this.status = status;
+    this.code = details.code;
+    this.upstreamStatus = details.upstreamStatus;
+  }
 }
 
 function plainText(value) {
@@ -123,7 +128,20 @@ export async function lookupProduct(item, fetcher = fetch) {
   }
   if (!response.ok) {
     await response.body?.cancel();
-    throw new LookupError('Ace is not accepting product lookups right now. You can still enter the details manually.');
+    const upstreamStatus = response.status;
+    if ([401, 403].includes(upstreamStatus)) {
+      throw new LookupError(`Ace denied this website’s automatic lookup request (HTTP ${upstreamStatus}). Open the item on Ace and enter its details manually. Reliable automatic lookup requires an approved Ace product feed or API.`, 502, {
+        code: 'ace_access_denied', upstreamStatus,
+      });
+    }
+    if (upstreamStatus === 429) {
+      throw new LookupError('Ace is limiting lookup requests (HTTP 429). Wait a minute before trying again, or open the item on Ace.', 503, {
+        code: 'ace_rate_limited', upstreamStatus,
+      });
+    }
+    throw new LookupError(`Ace returned HTTP ${upstreamStatus}. Try again later, or open the item on Ace and enter its details manually.`, 502, {
+      code: 'ace_upstream_error', upstreamStatus,
+    });
   }
   const product = parseProduct(new TextDecoder().decode(await readLimited(response, 3_000_000)), item);
   let photo = null;

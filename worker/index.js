@@ -24,7 +24,12 @@ export async function handleLookup(request, { fetcher = fetch, cache, waitUntil 
     if (cache) waitUntil(cache.put(key, result.clone()).catch(() => {}));
     return result;
   } catch (error) {
-    return json({ error: error instanceof LookupError ? error.message : 'Lookup is unavailable. Please enter the details manually.' }, error instanceof LookupError ? error.status : 502);
+    const known = error instanceof LookupError;
+    return json({
+      error: known ? error.message : 'Lookup is unavailable. Please enter the details manually.',
+      ...(known && error.code ? { code: error.code } : {}),
+      ...(known && error.upstreamStatus ? { upstreamStatus: error.upstreamStatus } : {}),
+    }, known ? error.status : 502, known && error.code === 'ace_rate_limited' ? { 'Retry-After': '60' } : {});
   }
 }
 

@@ -105,8 +105,33 @@ test('invalid numbers are rejected before any upstream request', async () => {
 
 test('not found, access denied, and network errors are actionable', async () => {
   await assert.rejects(lookupProduct(item, async () => new Response(null, { status: 404 })), error => error.status === 404);
-  await assert.rejects(lookupProduct(item, async () => new Response(null, { status: 403 })), /not accepting/);
+  await assert.rejects(lookupProduct(item, async () => new Response(null, { status: 403 })), error => error.code === 'ace_access_denied' && error.upstreamStatus === 403);
   await assert.rejects(lookupProduct(item, async () => { throw new Error('Network down'); }), /timed out or is unavailable/);
+});
+
+test('reports upstream failures without returning response bodies or credentials', async () => {
+  for (const [status, code, message] of [
+    [401, 'ace_access_denied', /denied/],
+    [403, 'ace_access_denied', /denied/],
+    [429, 'ace_rate_limited', /Wait a minute/],
+    [500, 'ace_upstream_error', /Try again later/],
+    [503, 'ace_upstream_error', /Try again later/],
+  ]) {
+    const response = await handleLookup(request(item, `upstream-test-${status}`), {
+      fetcher: async () => new Response('Upstream body that must not be exposed', {
+        status, headers: { 'Set-Cookie': 'private-session=must-not-return' },
+      }),
+    });
+    assert.equal(response.status, status === 429 ? 503 : 502);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(response.headers.get('set-cookie'), null);
+    assert.equal(response.headers.get('retry-after'), status === 429 ? '60' : null);
+    const body = await response.json();
+    assert.equal(body.code, code);
+    assert.equal(body.upstreamStatus, status);
+    assert.match(body.error, message);
+    assert.doesNotMatch(JSON.stringify(body), /must-not-return|must not be exposed/);
+  }
 });
 
 test('limits page sizes even when content-length is absent', async () => {
