@@ -1,4 +1,4 @@
-import storeLogo from './public/bryans-ace-hardware-logo.svg?raw';
+import storeLogo from './assets/bryans-ace-logo.png?inline';
 
 // All outputs use this same SVG sheet: live preview, print, and downloaded PDF.
 export const layouts = {
@@ -40,7 +40,6 @@ function wrap(text, maxWidth, size) {
 function text(content, x, y, size, extra = '') {
   return `<text x="${x}" y="${y}" font-size="${size}" ${extra}>${escape(content)}</text>`;
 }
-const logoArtwork = storeLogo.match(/<svg[^>]*>([\s\S]*)<\/svg>/)[1];
 
 function formatDate(value) {
   // Date inputs are calendar dates; format directly without timezone conversion.
@@ -76,8 +75,7 @@ function sign(data, height, index) {
   const item = data.item ? `ACE ITEM # ${data.item}` : '';
   return `<g class="sale-sign" data-sign="${index}" font-family="Arial, Helvetica, sans-serif" fill="#000">
     <rect x="1" y="1" width="998" height="${height - 2}" fill="#fff" stroke="#000" stroke-width="2"/>
-    <svg class="store-logo" x="${padding}" y="36" width="300" height="75" viewBox="0 0 400 100">${logoArtwork}</svg>
-    ${text('THE HELPFUL PLACE.', 375, 83, 15, 'font-weight="bold" letter-spacing="1"')}
+    <image class="store-logo" x="${padding}" y="5" width="194" height="131" href="${storeLogo}" preserveAspectRatio="xMidYMid meet" aria-label="Bryan's Ace Hardware logo"/>
     <rect x="748" y="36" width="210" height="77" fill="#000"/>
     ${text(isSale ? 'SALE' : 'PRICE', 853, 93, isSale ? 56 : 46, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
     <line x1="${padding}" y1="140" x2="958" y2="140" stroke="#000" stroke-width="2"/>
