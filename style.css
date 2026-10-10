@@ -93,3 +93,20 @@ footer span:first-child { color: #54544f; font-weight: 600; }
   #sheet-preview { width: auto; max-width: none; }
   .print-sheet { box-shadow: none; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+
+[hidden] { display: none !important; }
+.sign-type-picker { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
+.sign-type-picker legend, .promotion-dates legend { font-size: 12px; font-weight: 600; }
+.sign-type-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.sign-type-option { margin: 0; border: 1px solid #d9d9d5; border-radius: 4px; padding: 13px 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.sign-type-option:has(input:checked) { border-color: #191919; background: #f5f5f2; }
+.sign-type-option input { margin: 0; accent-color: #191919; }
+.sign-type-option > span:not(.layout-icon) { font-size: 12px; font-weight: 600; color: #181818; float: none; letter-spacing: 0; }
+.price-fields.regular-only { grid-template-columns: 1fr; }
+.promotion-dates { border: 0; border-top: 1px solid #e6e6e1; padding: 16px 0 0; margin: 28px 0 0; min-width: 0; }
+.promotion-dates legend { padding-right: 8px; }
+.promotion-dates legend span { color: #92928c; font-size: 8px; font-weight: 500; letter-spacing: 1px; margin-left: 8px; }
+.date-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.date-fields label { margin: 4px 0 9px; }
+.date-fields input { min-width: 0; max-width: 100%; }
+.date-note { color: #73736e; font-size: 10px; line-height: 1.6; margin: 10px 0 0; }

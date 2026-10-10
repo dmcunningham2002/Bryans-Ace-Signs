@@ -1,6 +1,8 @@
 # Brian's Ace Sign Maker
 
-A static, black-and-white sale sign generator. Enter a product name, optional Ace item number, regular price, and sale price. Choose full page, 2 per page, or 4 per page, then preview, download a PDF, or print.
+A static, black-and-white sign generator. Enter a product name and optional Ace item number, then choose a sale sign or a regular-price sign. Sale signs use regular and sale prices; regular-price signs show only the regular price, with no sale labels or savings. Choose full page, 2 per page, or 4 per page, then preview, download a PDF, or print.
+
+Sale signs offer optional start and end dates printed in the footer. Enter only an end date to show when a sale ends, or enter both dates to show the promotion period. End dates must be on or after start dates. Dates are formatted as calendar dates without timezone shifts and are hidden for regular-price signs.
 
 All signs are landscape. Full-page and 4-per-page sheets use landscape US Letter; 2-per-page sheets use portrait US Letter with two landscape signs stacked. Multi-sign sheets repeat the same product and include cut guides. Printing uses 0.3-inch safe margins; choose actual size/100% scale and disable browser headers and footers.
 

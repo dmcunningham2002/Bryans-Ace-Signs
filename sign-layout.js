@@ -42,7 +42,21 @@ function text(content, x, y, size, extra = '') {
 }
 const logoPaths = aceLogo.match(/<svg[^>]*>([\s\S]*)<\/svg>/)[1];
 
+function formatDate(value) {
+  // Date inputs are calendar dates; format directly without timezone conversion.
+  const [year, month, day] = value.split('-');
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  return `${months[Number(month) - 1]} ${Number(day)}, ${year}`;
+}
+function promotionCaption(data) {
+  if (data.startDate && data.endDate) return `VALID ${formatDate(data.startDate)} – ${formatDate(data.endDate)}`;
+  if (data.endDate) return `SALE ENDS ${formatDate(data.endDate)}`;
+  if (data.startDate) return `SALE STARTS ${formatDate(data.startDate)}`;
+  return 'GREAT FINDS. EVEN BETTER PRICES.';
+}
+
 function sign(data, height, index) {
+  const isSale = data.signType !== 'regular';
   const padding = 42;
   const middle = (174 + height - 168) / 2;
   let titleSize = 66;
@@ -51,28 +65,29 @@ function sign(data, height, index) {
     lines = wrap(data.product || 'Your product name', 485, --titleSize);
   }
   const start = middle - (lines.length - 1) * titleSize * 1.12 / 2 + titleSize * .32;
-  const price = money(data.sale);
+  const price = money(isSale ? data.sale : data.regular);
   const priceSize = fit(price, 350, 116, 40);
   const regular = `REG. ${money(data.regular)}`;
   const savings = data.regular > data.sale ? `SAVE ${money(data.regular - data.sale)}` : 'EVERYDAY VALUE';
+  const caption = isSale ? promotionCaption(data) : 'THE RIGHT PRICE. RIGHT HERE.';
   const item = data.item ? `ACE ITEM # ${data.item}` : '';
   return `<g class="sale-sign" data-sign="${index}" font-family="Arial, Helvetica, sans-serif" fill="#000">
     <rect x="1" y="1" width="998" height="${height - 2}" fill="#fff" stroke="#000" stroke-width="2"/>
     <svg x="${padding}" y="35" width="165" height="73" viewBox="0 0 309.118 137">${logoPaths}</svg>
     ${text('THE HELPFUL PLACE.', 230, 83, 15, 'font-weight="bold" letter-spacing="1"')}
     <rect x="748" y="36" width="210" height="77" fill="#000"/>
-    ${text('SALE', 853, 93, 56, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
+    ${text(isSale ? 'SALE' : 'PRICE', 853, 93, isSale ? 56 : 46, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
     <line x1="${padding}" y1="140" x2="958" y2="140" stroke="#000" stroke-width="2"/>
     ${lines.map((line, i) => text(line, padding, start + i * titleSize * 1.12, titleSize, 'class="product-line" font-weight="bold"')).join('')}
     ${text(item, padding, height - 136, fit(item, 485, 19), 'class="item-line" letter-spacing=".5"')}
     <line x1="557" y1="183" x2="557" y2="${height - 126}" stroke="#000" stroke-width="1"/>
-    ${text('SALE PRICE', 759, middle - 72, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
+    ${text(isSale ? 'SALE PRICE' : 'REGULAR PRICE', 759, middle - 72, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
     ${text(price, 759, middle + 43, priceSize, 'class="price-line" text-anchor="middle" font-weight="bold" letter-spacing="-3"')}
-    ${text(regular, 759, middle + 90, 23, 'text-anchor="middle"')}
+    ${isSale ? `${text(regular, 759, middle + 90, 23, 'text-anchor="middle"')}
     <rect x="614" y="${middle + 115}" width="290" height="52" fill="#000"/>
-    ${text(savings, 759, middle + 150, fit(savings, 266, 28), 'class="savings-line" fill="#fff" text-anchor="middle" font-weight="bold"')}
+    ${text(savings, 759, middle + 150, fit(savings, 266, 28), 'class="savings-line" fill="#fff" text-anchor="middle" font-weight="bold"')}` : ''}
     <line x1="${padding}" y1="${height - 85}" x2="958" y2="${height - 85}" stroke="#000" stroke-width="2"/>
-    ${text('GREAT FINDS. EVEN BETTER PRICES.', 500, height - 42, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
+    ${text(caption, 500, height - 42, fit(caption, 830, 20), 'class="promotion-caption" text-anchor="middle" font-weight="bold" letter-spacing="1"')}
   </g>`;
 }
 
@@ -94,5 +109,5 @@ export function renderSheet(data, key) {
   // Cut guides live in the gutters, outside each sign.
   if (layout.rows > 1) content += `<line x1="15" y1="${pageHeight / 2}" x2="${pageWidth - 15}" y2="${pageHeight / 2}" stroke="#999" stroke-width=".6" stroke-dasharray="4 5"/>`;
   if (layout.columns > 1) content += `<line x1="${pageWidth / 2}" y1="15" x2="${pageWidth / 2}" y2="${pageHeight - 15}" stroke="#999" stroke-width=".6" stroke-dasharray="4 5"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="print-sheet" role="img" aria-label="${layout.label} sale sign preview" viewBox="0 0 ${pageWidth} ${pageHeight}" width="${pageWidth}" height="${pageHeight}"><rect width="${pageWidth}" height="${pageHeight}" fill="#fff"/>${content}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="print-sheet" role="img" aria-label="${layout.label} ${data.signType === 'regular' ? 'regular-price' : 'sale'} sign preview" viewBox="0 0 ${pageWidth} ${pageHeight}" width="${pageWidth}" height="${pageHeight}"><rect width="${pageWidth}" height="${pageHeight}" fill="#fff"/>${content}</svg>`;
 }
