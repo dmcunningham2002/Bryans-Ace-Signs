@@ -2,6 +2,14 @@
 
 A black-and-white sign generator with optional Ace item lookup. Enter a product name and optional Ace item number, then choose a sale sign or a regular-price sign. Sale signs use regular and sale prices; regular-price signs show only the regular price, with no sale labels or savings. Choose full page, 2 per page, or 4 per page, then preview, download a PDF, or print.
 
+## Adding product pictures
+
+For the selected sign, paste a **direct picture link** into Picture link and click **Add picture**, or copy an image, click the paste area, and press **Ctrl+V** (**⌘+V** on Mac). **Choose image file** also supports saved pictures and mobile photo selection. On Ace, right-click the product picture and select **Copy image address** for a link, or **Copy image** for pasting. A product-page URL is not a picture link.
+
+Pictures are fitted inside the product section without cropping or stretching, converted to grayscale on white, and embedded in preview, printing, and PDF. PNG, JPG, WebP, GIF, and AVIF files up to 6 MB and 40 megapixels are supported; animated pictures use a still frame. Each sign has its own picture. **Include on sign** temporarily hides it; **Remove picture** deletes it from that sign. Manual pictures remain when item numbers or product details change. Pictures and form entries stay in memory until refresh/close; selected files and pasted pictures are processed in the browser rather than uploaded.
+
+Ace's public image CDN is loaded through the restricted `GET /api/photo?url=...` endpoint because its images lack browser CORS headers. This endpoint only accepts HTTPS URLs for Ace's existing `24645-` tenant on `cdn-tp[1-6].mozu.com`, sends no cookies or authorization, limits bytes and request time, and rejects redirects to other hosts or credential-bearing URLs. It does not bypass an image host's access denial. Other HTTPS picture links are loaded directly by the browser and require the source website to allow CORS access; when blocked, use clipboard paste or a saved file instead. A failed image replacement preserves the previous picture, and switching signs cancels pending replacements.
+
 ## Item lookup
 
 Enter an Ace item number and click **Look up item** (or press Enter). Lookup fills the product name, an editable short description, a grayscale product photo when available, and available online regular/sale prices. It selects sale or regular-price mode and clears previous promotion dates. You can edit every text/price field and turn the photo off. Descriptions are limited to 200 characters to keep signs readable.
