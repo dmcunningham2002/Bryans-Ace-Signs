@@ -1,4 +1,4 @@
-import aceLogo from './public/ace-logo.svg?raw';
+import storeLogo from './public/bryans-ace-hardware-logo.svg?raw';
 
 // All outputs use this same SVG sheet: live preview, print, and downloaded PDF.
 export const layouts = {
@@ -40,7 +40,7 @@ function wrap(text, maxWidth, size) {
 function text(content, x, y, size, extra = '') {
   return `<text x="${x}" y="${y}" font-size="${size}" ${extra}>${escape(content)}</text>`;
 }
-const logoPaths = aceLogo.match(/<svg[^>]*>([\s\S]*)<\/svg>/)[1];
+const logoArtwork = storeLogo.match(/<svg[^>]*>([\s\S]*)<\/svg>/)[1];
 
 function formatDate(value) {
   // Date inputs are calendar dates; format directly without timezone conversion.
@@ -58,11 +58,14 @@ function promotionCaption(data) {
 function sign(data, height, index) {
   const isSale = data.signType !== 'regular';
   const padding = 42;
+  const divider = 557;
+  const productCenter = divider / 2;
+  const productWidth = divider - padding * 2;
   const middle = (174 + height - 168) / 2;
   let titleSize = 66;
-  let lines = wrap(data.product || 'Your product name', 485, titleSize);
+  let lines = wrap(data.product || 'Your product name', productWidth, titleSize);
   while ((lines.length * titleSize * 1.12 > height - 335 || lines.length > 4) && titleSize > 24) {
-    lines = wrap(data.product || 'Your product name', 485, --titleSize);
+    lines = wrap(data.product || 'Your product name', productWidth, --titleSize);
   }
   const start = middle - (lines.length - 1) * titleSize * 1.12 / 2 + titleSize * .32;
   const price = money(isSale ? data.sale : data.regular);
@@ -73,14 +76,14 @@ function sign(data, height, index) {
   const item = data.item ? `ACE ITEM # ${data.item}` : '';
   return `<g class="sale-sign" data-sign="${index}" font-family="Arial, Helvetica, sans-serif" fill="#000">
     <rect x="1" y="1" width="998" height="${height - 2}" fill="#fff" stroke="#000" stroke-width="2"/>
-    <svg x="${padding}" y="35" width="165" height="73" viewBox="0 0 309.118 137">${logoPaths}</svg>
-    ${text('THE HELPFUL PLACE.', 230, 83, 15, 'font-weight="bold" letter-spacing="1"')}
+    <svg class="store-logo" x="${padding}" y="36" width="300" height="75" viewBox="0 0 400 100">${logoArtwork}</svg>
+    ${text('THE HELPFUL PLACE.', 375, 83, 15, 'font-weight="bold" letter-spacing="1"')}
     <rect x="748" y="36" width="210" height="77" fill="#000"/>
     ${text(isSale ? 'SALE' : 'PRICE', 853, 93, isSale ? 56 : 46, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
     <line x1="${padding}" y1="140" x2="958" y2="140" stroke="#000" stroke-width="2"/>
-    ${lines.map((line, i) => text(line, padding, start + i * titleSize * 1.12, titleSize, 'class="product-line" font-weight="bold"')).join('')}
-    ${text(item, padding, height - 136, fit(item, 485, 19), 'class="item-line" letter-spacing=".5"')}
-    <line x1="557" y1="183" x2="557" y2="${height - 126}" stroke="#000" stroke-width="1"/>
+    ${lines.map((line, i) => text(line, productCenter, start + i * titleSize * 1.12, titleSize, 'class="product-line" text-anchor="middle" font-weight="bold"')).join('')}
+    ${text(item, productCenter, height - 136, fit(item, productWidth - item.length * .5, 28, 12), 'class="item-line" text-anchor="middle" font-weight="bold" letter-spacing=".5"')}
+    <line x1="${divider}" y1="183" x2="${divider}" y2="${height - 126}" stroke="#000" stroke-width="1"/>
     ${text(isSale ? 'SALE PRICE' : 'REGULAR PRICE', 759, middle - 72, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
     ${text(price, 759, middle + 43, priceSize, 'class="price-line" text-anchor="middle" font-weight="bold" letter-spacing="-3"')}
     ${isSale ? `${text(regular, 759, middle + 90, 23, 'text-anchor="middle"')}
