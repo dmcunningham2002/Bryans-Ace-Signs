@@ -17,7 +17,6 @@ const printButton = document.querySelector('#print');
 const lookupButton = document.querySelector('#lookup');
 const lookupStatus = document.querySelector('#lookup-status');
 let productPhoto = null;
-let lookedUpItem = null;
 let lookupRequest = null;
 const printStyle = document.createElement('style');
 document.head.append(printStyle);
@@ -95,7 +94,6 @@ async function downloadPDF(values, key) {
 function resetLookup() {
   lookupRequest?.abort();
   productPhoto = null;
-  lookedUpItem = null;
   document.querySelector('#photo-controls').hidden = true;
   document.querySelector('#source-link').hidden = true;
   lookupStatus.textContent = '';
@@ -130,6 +128,9 @@ async function lookUpItem() {
   lookupButton.disabled = true;
   lookupButton.textContent = 'Looking up…';
   lookupStatus.textContent = 'Getting product details from Ace…';
+  const source = document.querySelector('#source-link');
+  source.href = `https://www.acehardware.com/p/${item}`;
+  source.hidden = false;
   try {
     const response = await fetch(`/api/product?item=${encodeURIComponent(item)}`, { signal: controller.signal });
     const result = await response.json();
@@ -141,7 +142,6 @@ async function lookUpItem() {
     }
     if (controller.signal.aborted || form.elements.namedItem('item').value.trim() !== item) return;
     productPhoto = photo;
-    lookedUpItem = item;
     form.elements.product.value = result.name.slice(0, 90);
     form.elements.description.value = (result.description || '').slice(0, 200);
     form.elements.regular.value = result.regularPrice ? Number(result.regularPrice).toFixed(2) : '';
@@ -154,9 +154,6 @@ async function lookUpItem() {
     document.querySelector('#include-photo').checked = true;
     document.querySelector('#photo-controls').hidden = !photo;
     if (photo) document.querySelector('#photo-thumbnail').src = photo;
-    const source = document.querySelector('#source-link');
-    source.href = `https://www.acehardware.com/p/${item}`;
-    source.hidden = false;
     lookupStatus.textContent = 'Item loaded. Ace online prices are shown; confirm Keystone Heights pricing before printing.' +
       (!result.regularPrice ? ' No price was available—enter your store price.' : '') +
       (!photo ? ' No photo was available.' : '');
@@ -176,7 +173,7 @@ form.elements.namedItem('item').addEventListener('keydown', event => {
   if (event.key === 'Enter') { event.preventDefault(); if (!lookupButton.disabled) lookUpItem(); }
 });
 form.addEventListener('input', event => {
-  if (event.target === form.elements.namedItem('item') && (lookedUpItem || lookupRequest)) resetLookup();
+  if (event.target === form.elements.namedItem('item')) resetLookup();
   update();
 });
 form.addEventListener('submit', async event => {
