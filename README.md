@@ -8,7 +8,7 @@ Enter an Ace item number and click **Look up item** (or press Enter). Lookup fil
 
 **Prices are Ace online catalog prices, not verified Keystone Heights store prices. Confirm and adjust them before printing.** The app displays this reminder after lookup. The supplied Ace homepage link does not contain a store identifier, and no store-specific feed or API credentials are configured.
 
-The same-origin Cloudflare Worker endpoint `GET /api/product?item=1043304` reads the matching public product page and retrieves photos only from Ace's tenant on its image CDN. It sends no authentication or store cookies. Successful lookups are cached for up to 15 minutes; uncached requests have a five-second per-client cooldown within a Worker instance. Requests time out, have response-size limits, and reject redirects to other hosts. Missing images do not discard product text or prices. If a product is unavailable, blocked, or the public page format changes, manual entry continues to work. This public-page lookup is not an official Ace API integration or a guarantee of product availability.
+The same-origin endpoint `GET /api/product?item=1043304` reads the matching public product page and retrieves photos only from Ace's tenant on its image CDN. It runs as a Cloudflare Pages Function or a standalone Worker and sends no authentication or store cookies. Successful lookups are cached for up to 15 minutes; uncached requests have a five-second per-client cooldown within a runtime instance. Requests time out, have response-size limits, and reject redirects to other hosts. Missing images do not discard product text or prices. If a product is unavailable, blocked, or the public page format changes, manual entry continues to work. This public-page lookup is not an official Ace API integration or a guarantee of product availability.
 
 Sale signs offer optional start and end dates printed in the footer. Enter only an end date to show when a sale ends, or enter both dates to show the promotion period. End dates must be on or after start dates. Dates are formatted as calendar dates without timezone shifts and are hidden for regular-price signs.
 
@@ -20,26 +20,40 @@ The preview, print output, and PDF use the same SVG sheet. PDF downloads embed i
 
 Use Node.js 24. Run `npm ci`, then `npm run dev`. The development command starts Vite on port 5173 and the lookup handler on localhost port 8788. Node's environment-proxy support allows lookup through the cloud environment's configured proxy. Build with `npm run build`; run the catalog/backend tests with `npm test`.
 
-For production-runtime checks, build first and run `npx wrangler dev --local --port 8787`. `npm run preview` previews only the static files and does not provide the lookup endpoint.
+For Pages runtime checks, build first and run `npx wrangler pages dev dist --port 8787`. `npm run preview` previews only the static files and does not provide the lookup endpoint.
 
 The cloud environment's local Workers simulator does not use its HTTPS egress proxy for Worker subrequests. Use `npm run dev` for live lookup here; local Wrangler can still check asset routing and error handling. Worker execution was separately verified with its outbound requests routed through the environment's supported Node proxy.
 
 In this cloud environment, use `npm ci --cache /workspace/.npm-cache` if the default npm cache is unavailable.
 
-## Cloudflare Workers deployment
+## Cloudflare Pages deployment
 
-The existing `bryans-ace-signs.dmcunningham2002.workers.dev` site is a Worker. The new lookup endpoint requires the Worker code in `worker/index.js` in addition to the static assets. `wrangler.jsonc` configures both, preserving the existing Worker name.
+The `bryans-ace-signs` Pages project builds directly from this Git repository. Its `functions/api/product.js` route serves the lookup endpoint using the shared backend. `public/_routes.json` limits Function invocation to API routes so static files are served directly. The checked-in `wrangler.jsonc` contains Pages-compatible configuration.
 
 - Production branch: `main`
 - Build command: `npm run build`
-- Deploy command: `npx wrangler deploy` (or `npm run deploy`)
-- Static assets: `dist`, supplied by `wrangler.jsonc`
+- Build output directory: `dist`
+- Root directory: leave blank (or use `/`); `package.json` is a file, not a directory
+- Environment variable: `NODE_VERSION=24`
+
+Pages has no separate deploy-command field. Merge the update into `main` and let the connected Pages project build and deploy the static files and Functions together. You can retry the latest production build from Deployments after updating build settings. No Ace API key or additional binding is needed.
+
+To check the Functions bundle without publishing, run `npx wrangler pages functions build functions --outdir /tmp/ace-pages-functions --build-output-directory dist`. For an authenticated manual Pages deployment, build first and run `npm run deploy`.
+
+## Optional Cloudflare Workers deployment
+
+For the separate `bryans-ace-signs.dmcunningham2002.workers.dev` site, `wrangler.worker.jsonc` preserves the standalone Worker and static assets configuration. Use this file explicitly so it is not confused with the Pages configuration.
+
+- Production branch: `main`
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy --config wrangler.worker.jsonc` (or `npm run deploy:worker`)
+- Static assets: `dist`, supplied by `wrangler.worker.jsonc`
 - Root directory: leave blank when this repository is connected directly
 - Environment variable: `NODE_VERSION=24`
 
-Merge the pull request into `main`, then let the connected Cloudflare Workers build deploy it. Ensure the deploy command uses the checked-in Wrangler configuration; remove any old `--assets=dist`-only overrides. This update cannot be deployed as a static-only Pages upload because `/api/product` needs a running Worker. No Ace API keys or environment secrets are needed. Deployment uses the Cloudflare account authentication already configured in the connected build.
+Use the explicit Worker deploy command above in the connected Workers build and remove any static-only `--assets=dist` overrides. No Ace API keys or environment secrets are needed. Deployment uses the Cloudflare account authentication already configured in the connected build.
 
-To check packaging without publishing, run `npx wrangler deploy --dry-run`. In this cloud environment, if Wrangler's default configuration path is unavailable, prefix local Wrangler commands with `XDG_CONFIG_HOME=/tmp/ace-wrangler-config WRANGLER_SEND_METRICS=false`.
+To check Worker packaging without publishing, run `npx wrangler deploy --config wrangler.worker.jsonc --dry-run`. In this cloud environment, if Wrangler's default configuration path is unavailable, prefix local Wrangler commands with `XDG_CONFIG_HOME=/tmp/ace-wrangler-config WRANGLER_SEND_METRICS=false`.
 
 ## Logo source
 
