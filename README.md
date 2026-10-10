@@ -26,4 +26,6 @@ No backend or API keys are required.
 
 ## Logo source
 
-The bundled Ace wordmark comes from the vector artwork in [Ace_Hardware_Logo.svg](https://github.com/rmwhaling/myoviedo/blob/master/images/Ace_Hardware_Logo.svg). The lettering is retained as vector paths and rendered in black for monochrome printing. Ace's trademark belongs to its owner.
+Product text is centered in the left section. Ace item numbers are centered and printed in a larger bold font, with automatic sizing for longer numbers.
+
+The custom monochrome Bryan’s Ace Hardware wordmark pairs store-name text with the bundled Ace artwork; it is not an exact reproduction of a supplied store logo. The bundled Ace artwork comes from the vector artwork in [Ace_Hardware_Logo.svg](https://github.com/rmwhaling/myoviedo/blob/master/images/Ace_Hardware_Logo.svg). The lettering is retained as vector paths and rendered in black for monochrome printing. Ace's trademark belongs to its owner.
