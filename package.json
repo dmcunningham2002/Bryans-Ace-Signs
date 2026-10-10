@@ -1,1 +1,20 @@
-{"name":"brians-ace-sign-maker","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0"},"dependencies":{"jspdf":"^3.0.3","vite":"^7.1.9"}}
+{
+  "name": "brians-ace-sign-maker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --use-env-proxy dev-server.js",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.js",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "jspdf": "^3.0.3",
+    "vite": "^7.1.9"
+  },
+  "devDependencies": {
+    "wrangler": "^4.149.0"
+  }
+}

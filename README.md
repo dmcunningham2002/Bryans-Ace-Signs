@@ -1,28 +1,45 @@
 # Brian's Ace Sign Maker
 
-A static, black-and-white sign generator. Enter a product name and optional Ace item number, then choose a sale sign or a regular-price sign. Sale signs use regular and sale prices; regular-price signs show only the regular price, with no sale labels or savings. Choose full page, 2 per page, or 4 per page, then preview, download a PDF, or print.
+A black-and-white sign generator with optional Ace item lookup. Enter a product name and optional Ace item number, then choose a sale sign or a regular-price sign. Sale signs use regular and sale prices; regular-price signs show only the regular price, with no sale labels or savings. Choose full page, 2 per page, or 4 per page, then preview, download a PDF, or print.
+
+## Item lookup
+
+Enter an Ace item number and click **Look up item** (or press Enter). Lookup fills the product name, an editable short description, a grayscale product photo when available, and available online regular/sale prices. It selects sale or regular-price mode and clears previous promotion dates. You can edit every text/price field and turn the photo off. Descriptions are limited to 200 characters to keep signs readable.
+
+**Prices are Ace online catalog prices, not verified Keystone Heights store prices. Confirm and adjust them before printing.** The app displays this reminder after lookup. The supplied Ace homepage link does not contain a store identifier, and no store-specific feed or API credentials are configured.
+
+The same-origin Cloudflare Worker endpoint `GET /api/product?item=1043304` reads the matching public product page and retrieves photos only from Ace's tenant on its image CDN. It sends no authentication or store cookies. Successful lookups are cached for up to 15 minutes; uncached requests have a five-second per-client cooldown within a Worker instance. Requests time out, have response-size limits, and reject redirects to other hosts. Missing images do not discard product text or prices. If a product is unavailable, blocked, or the public page format changes, manual entry continues to work. This public-page lookup is not an official Ace API integration or a guarantee of product availability.
 
 Sale signs offer optional start and end dates printed in the footer. Enter only an end date to show when a sale ends, or enter both dates to show the promotion period. End dates must be on or after start dates. Dates are formatted as calendar dates without timezone shifts and are hidden for regular-price signs.
 
 All signs are landscape. Full-page and 4-per-page sheets use landscape US Letter; 2-per-page sheets use portrait US Letter with two landscape signs stacked. Multi-sign sheets repeat the same product and include cut guides. Printing uses 0.3-inch safe margins; choose actual size/100% scale and disable browser headers and footers.
 
-The preview, print output, and PDF use the same SVG sheet. PDF downloads embed it at 300 dpi, including the Bryan’s Ace logo, with no external image or font requests.
+The preview, print output, and PDF use the same SVG sheet. PDF downloads embed it at 300 dpi, including the Bryan’s Ace logo and optional product photo, with no external image or font requests when rendering/exporting the sign.
 
 ## Development
 
-Use Node.js 24. Run `npm ci`, then `npm run dev`. Build with `npm run build`.
+Use Node.js 24. Run `npm ci`, then `npm run dev`. The development command starts Vite on port 5173 and the lookup handler on localhost port 8788. Node's environment-proxy support allows lookup through the cloud environment's configured proxy. Build with `npm run build`; run the catalog/backend tests with `npm test`.
+
+For production-runtime checks, build first and run `npx wrangler dev --local --port 8787`. `npm run preview` previews only the static files and does not provide the lookup endpoint.
+
+The cloud environment's local Workers simulator does not use its HTTPS egress proxy for Worker subrequests. Use `npm run dev` for live lookup here; local Wrangler can still check asset routing and error handling. Worker execution was separately verified with its outbound requests routed through the environment's supported Node proxy.
 
 In this cloud environment, use `npm ci --cache /workspace/.npm-cache` if the default npm cache is unavailable.
 
-## Cloudflare Pages
+## Cloudflare Workers deployment
+
+The existing `bryans-ace-signs.dmcunningham2002.workers.dev` site is a Worker. The new lookup endpoint requires the Worker code in `worker/index.js` in addition to the static assets. `wrangler.jsonc` configures both, preserving the existing Worker name.
 
 - Production branch: `main`
 - Build command: `npm run build`
-- Build output: `dist`
+- Deploy command: `npx wrangler deploy` (or `npm run deploy`)
+- Static assets: `dist`, supplied by `wrangler.jsonc`
 - Root directory: leave blank when this repository is connected directly
 - Environment variable: `NODE_VERSION=24`
 
-No backend or API keys are required.
+Merge the pull request into `main`, then let the connected Cloudflare Workers build deploy it. Ensure the deploy command uses the checked-in Wrangler configuration; remove any old `--assets=dist`-only overrides. This update cannot be deployed as a static-only Pages upload because `/api/product` needs a running Worker. No Ace API keys or environment secrets are needed. Deployment uses the Cloudflare account authentication already configured in the connected build.
+
+To check packaging without publishing, run `npx wrangler deploy --dry-run`. In this cloud environment, if Wrangler's default configuration path is unavailable, prefix local Wrangler commands with `XDG_CONFIG_HOME=/tmp/ace-wrangler-config WRANGLER_SEND_METRICS=false`.
 
 ## Logo source
 

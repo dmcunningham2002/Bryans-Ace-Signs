@@ -67,6 +67,38 @@ function sign(data, height, index) {
     lines = wrap(data.product || 'Your product name', productWidth, --titleSize);
   }
   const start = middle - (lines.length - 1) * titleSize * 1.12 / 2 + titleSize * .32;
+  let productContent = lines.map((line, i) => text(line, productCenter, start + i * titleSize * 1.12, titleSize, 'class="product-line" text-anchor="middle" font-weight="bold"')).join('');
+  const photo = typeof data.photo === 'string' && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.photo) ? data.photo : null;
+  const description = String(data.description || '').slice(0, 200).trim();
+  if (photo || description) {
+    const top = 174;
+    const available = height - 348;
+    titleSize = photo ? 40 : 50;
+    lines = wrap(data.product || 'Your product name', productWidth, titleSize);
+    while ((lines.length > (photo ? 3 : 4) || lines.length * titleSize * 1.12 > available * (photo ? .4 : .65)) && titleSize > 24) {
+      lines = wrap(data.product || 'Your product name', productWidth, --titleSize);
+    }
+    let descriptionSize = 18;
+    let descriptionLines = description ? wrap(description, productWidth, descriptionSize) : [];
+    while (descriptionLines.length > 5 && descriptionSize > 12) descriptionLines = wrap(description, productWidth, --descriptionSize);
+    const titleHeight = lines.length * titleSize * 1.12;
+    const descriptionHeight = descriptionLines.length * descriptionSize * 1.2;
+    const gap = 12;
+    const photoHeight = photo ? Math.max(0, Math.min(190, available - titleHeight - descriptionHeight - gap * (description ? 2 : 1))) : 0;
+    const used = titleHeight + descriptionHeight + photoHeight + (photo ? gap : 0) + (description ? gap : 0);
+    let y = top + Math.max(0, available - used) / 2;
+    productContent = lines.map((line, i) => text(line, productCenter, y + titleSize + i * titleSize * 1.12, titleSize, 'class="product-line" text-anchor="middle" font-weight="bold"')).join('');
+    y += titleHeight;
+    if (photo) {
+      y += gap;
+      productContent += `<image class="product-photo" x="${padding}" y="${y}" width="${productWidth}" height="${photoHeight}" href="${photo}" preserveAspectRatio="xMidYMid meet"/>`;
+      y += photoHeight;
+    }
+    if (description) {
+      y += gap;
+      productContent += descriptionLines.map((line, i) => text(line, productCenter, y + descriptionSize + i * descriptionSize * 1.2, descriptionSize, 'class="description-line" text-anchor="middle"')).join('');
+    }
+  }
   const price = money(isSale ? data.sale : data.regular);
   const priceSize = fit(price, 350, 116, 40);
   const regular = `REG. ${money(data.regular)}`;
@@ -79,7 +111,7 @@ function sign(data, height, index) {
     <rect x="748" y="36" width="210" height="77" fill="#000"/>
     ${text(isSale ? 'SALE' : 'PRICE', 853, 93, isSale ? 56 : 46, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
     <line x1="${padding}" y1="140" x2="958" y2="140" stroke="#000" stroke-width="2"/>
-    ${lines.map((line, i) => text(line, productCenter, start + i * titleSize * 1.12, titleSize, 'class="product-line" text-anchor="middle" font-weight="bold"')).join('')}
+    ${productContent}
     ${text(item, productCenter, height - 136, fit(item, productWidth - item.length * .5, 28, 12), 'class="item-line" text-anchor="middle" font-weight="bold" letter-spacing=".5"')}
     <line x1="${divider}" y1="183" x2="${divider}" y2="${height - 126}" stroke="#000" stroke-width="1"/>
     ${text(isSale ? 'SALE PRICE' : 'REGULAR PRICE', 759, middle - 72, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
