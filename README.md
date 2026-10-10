@@ -14,7 +14,9 @@ Ace can allow public pages in a browser or this development environment while re
 
 Sale signs offer optional start and end dates printed in the footer. Enter only an end date to show when a sale ends, or enter both dates to show the promotion period. End dates must be on or after start dates. Dates are formatted as calendar dates without timezone shifts and are hidden for regular-price signs.
 
-All signs are landscape. Full-page and 4-per-page sheets use landscape US Letter; 2-per-page sheets use portrait US Letter with two landscape signs stacked. Multi-sign sheets repeat the same product and include cut guides. Printing uses 0.3-inch safe margins; choose actual size/100% scale and disable browser headers and footers.
+All signs are landscape. Full-page and 4-per-page sheets use landscape US Letter; 2-per-page sheets use portrait US Letter with two landscape signs stacked. Choose a layout first, then use the Sign 1–4 buttons to enter each position's product, item number, description, photo, prices, sign type, and dates independently. Two-sign sheets use top/bottom order; four-sign sheets use top left, top right, bottom left, bottom right. Switching layouts preserves all four entries until the page is closed or refreshed; only the positions in the current layout are exported and validated. New positions start empty and must be filled before printing. **Copy to all** repeats the current sign across the visible positions when duplicates are wanted. Multi-sign sheets include cut guides. Printing uses 0.3-inch safe margins; choose actual size/100% scale and disable browser headers and footers.
+
+The printed footer slogans have been removed. A footer appears only when a sale sign has promotion dates; regular-price signs and undated sale signs use the space for product details instead. PDF downloads and browser printing validate every sign on the current sheet and select any position that needs correction.
 
 The preview, print output, and PDF use the same SVG sheet. PDF downloads embed it at 300 dpi, including the Bryan’s Ace logo and optional product photo, with no external image or font requests when rendering/exporting the sign.
 

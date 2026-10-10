@@ -9,7 +9,7 @@ export const layouts = {
 
 const measure = document.createElement('canvas').getContext('2d');
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]);
-const money = value => '$' + value.toFixed(2);
+const money = value => Number.isFinite(value) ? '$' + value.toFixed(2) : '—';
 function width(text, size, weight = 'bold') {
   measure.font = `${weight} ${size}px Arial`;
   return measure.measureText(text).width;
@@ -51,19 +51,22 @@ function promotionCaption(data) {
   if (data.startDate && data.endDate) return `VALID ${formatDate(data.startDate)} – ${formatDate(data.endDate)}`;
   if (data.endDate) return `SALE ENDS ${formatDate(data.endDate)}`;
   if (data.startDate) return `SALE STARTS ${formatDate(data.startDate)}`;
-  return 'GREAT FINDS. EVEN BETTER PRICES.';
+  return '';
 }
 
 function sign(data, height, index) {
   const isSale = data.signType !== 'regular';
+  const caption = isSale ? promotionCaption(data) : '';
   const padding = 42;
   const divider = 557;
   const productCenter = divider / 2;
   const productWidth = divider - padding * 2;
-  const middle = (174 + height - 168) / 2;
+  const itemY = height - (caption ? 136 : 48);
+  const available = itemY - 40 - 174;
+  const middle = 174 + available / 2;
   let titleSize = 66;
   let lines = wrap(data.product || 'Your product name', productWidth, titleSize);
-  while ((lines.length * titleSize * 1.12 > height - 335 || lines.length > 4) && titleSize > 24) {
+  while ((lines.length * titleSize * 1.12 > available || lines.length > 4) && titleSize > 24) {
     lines = wrap(data.product || 'Your product name', productWidth, --titleSize);
   }
   const start = middle - (lines.length - 1) * titleSize * 1.12 / 2 + titleSize * .32;
@@ -72,7 +75,6 @@ function sign(data, height, index) {
   const description = String(data.description || '').slice(0, 200).trim();
   if (photo || description) {
     const top = 174;
-    const available = height - 348;
     titleSize = photo ? 40 : 50;
     lines = wrap(data.product || 'Your product name', productWidth, titleSize);
     while ((lines.length > (photo ? 3 : 4) || lines.length * titleSize * 1.12 > available * (photo ? .4 : .65)) && titleSize > 24) {
@@ -103,7 +105,6 @@ function sign(data, height, index) {
   const priceSize = fit(price, 350, 116, 40);
   const regular = `REG. ${money(data.regular)}`;
   const savings = data.regular > data.sale ? `SAVE ${money(data.regular - data.sale)}` : 'EVERYDAY VALUE';
-  const caption = isSale ? promotionCaption(data) : 'THE RIGHT PRICE. RIGHT HERE.';
   const item = data.item ? `ACE ITEM # ${data.item}` : '';
   return `<g class="sale-sign" data-sign="${index}" font-family="Arial, Helvetica, sans-serif" fill="#000">
     <rect x="1" y="1" width="998" height="${height - 2}" fill="#fff" stroke="#000" stroke-width="2"/>
@@ -112,19 +113,20 @@ function sign(data, height, index) {
     ${text(isSale ? 'SALE' : 'PRICE', 853, 93, isSale ? 56 : 46, 'fill="#fff" text-anchor="middle" font-weight="900" letter-spacing="3"')}
     <line x1="${padding}" y1="140" x2="958" y2="140" stroke="#000" stroke-width="2"/>
     ${productContent}
-    ${text(item, productCenter, height - 136, fit(item, productWidth - item.length * .5, 28, 12), 'class="item-line" text-anchor="middle" font-weight="bold" letter-spacing=".5"')}
-    <line x1="${divider}" y1="183" x2="${divider}" y2="${height - 126}" stroke="#000" stroke-width="1"/>
+    ${text(item, productCenter, itemY, fit(item, productWidth - item.length * .5, 28, 12), 'class="item-line" text-anchor="middle" font-weight="bold" letter-spacing=".5"')}
+    <line x1="${divider}" y1="183" x2="${divider}" y2="${itemY + 10}" stroke="#000" stroke-width="1"/>
     ${text(isSale ? 'SALE PRICE' : 'REGULAR PRICE', 759, middle - 72, 17, 'text-anchor="middle" font-weight="bold" letter-spacing="2"')}
     ${text(price, 759, middle + 43, priceSize, 'class="price-line" text-anchor="middle" font-weight="bold" letter-spacing="-3"')}
     ${isSale ? `${text(regular, 759, middle + 90, 23, 'text-anchor="middle"')}
     <rect x="614" y="${middle + 115}" width="290" height="52" fill="#000"/>
     ${text(savings, 759, middle + 150, fit(savings, 266, 28), 'class="savings-line" fill="#fff" text-anchor="middle" font-weight="bold"')}` : ''}
-    <line x1="${padding}" y1="${height - 85}" x2="958" y2="${height - 85}" stroke="#000" stroke-width="2"/>
-    ${text(caption, 500, height - 42, fit(caption, 830, 20), 'class="promotion-caption" text-anchor="middle" font-weight="bold" letter-spacing="1"')}
+    ${caption ? `<line x1="${padding}" y1="${height - 85}" x2="958" y2="${height - 85}" stroke="#000" stroke-width="2"/>
+    ${text(caption, 500, height - 42, fit(caption, 830, 20), 'class="promotion-caption" text-anchor="middle" font-weight="bold" letter-spacing="1"')}` : ''}
   </g>`;
 }
 
 export function renderSheet(data, key) {
+  const signs = Array.isArray(data) ? data : [data];
   const layout = layouts[key];
   const pageWidth = layout.width * 100;
   const pageHeight = layout.height * 100;
@@ -137,10 +139,10 @@ export function renderSheet(data, key) {
   for (let i = 0; i < layout.count; i++) {
     const x = margin + (i % layout.columns) * (signWidth + gap);
     const y = margin + Math.floor(i / layout.columns) * (signHeight + gap);
-    content += `<g transform="translate(${x} ${y}) scale(${scale})">${sign(data, signHeight / scale, i)}</g>`;
+    content += `<g transform="translate(${x} ${y}) scale(${scale})">${sign(signs[i] || {}, signHeight / scale, i)}</g>`;
   }
   // Cut guides live in the gutters, outside each sign.
   if (layout.rows > 1) content += `<line x1="15" y1="${pageHeight / 2}" x2="${pageWidth - 15}" y2="${pageHeight / 2}" stroke="#999" stroke-width=".6" stroke-dasharray="4 5"/>`;
   if (layout.columns > 1) content += `<line x1="${pageWidth / 2}" y1="15" x2="${pageWidth / 2}" y2="${pageHeight - 15}" stroke="#999" stroke-width=".6" stroke-dasharray="4 5"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="print-sheet" role="img" aria-label="${layout.label} ${data.signType === 'regular' ? 'regular-price' : 'sale'} sign preview" viewBox="0 0 ${pageWidth} ${pageHeight}" width="${pageWidth}" height="${pageHeight}"><rect width="${pageWidth}" height="${pageHeight}" fill="#fff"/>${content}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="print-sheet" role="img" aria-label="${layout.label} sign preview" viewBox="0 0 ${pageWidth} ${pageHeight}" width="${pageWidth}" height="${pageHeight}"><rect width="${pageWidth}" height="${pageHeight}" fill="#fff"/>${content}</svg>`;
 }
