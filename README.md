@@ -6,7 +6,7 @@ Sale signs offer optional start and end dates printed in the footer. Enter only 
 
 All signs are landscape. Full-page and 4-per-page sheets use landscape US Letter; 2-per-page sheets use portrait US Letter with two landscape signs stacked. Multi-sign sheets repeat the same product and include cut guides. Printing uses 0.3-inch safe margins; choose actual size/100% scale and disable browser headers and footers.
 
-The preview, print output, and PDF use the same SVG sheet. PDF downloads embed it at 300 dpi, including the Ace wordmark, with no external image or font requests.
+The preview, print output, and PDF use the same SVG sheet. PDF downloads embed it at 300 dpi, including the Bryan’s Ace logo, with no external image or font requests.
 
 ## Development
 
@@ -28,4 +28,6 @@ No backend or API keys are required.
 
 Product text is centered in the left section. Ace item numbers are centered and printed in a larger bold font, with automatic sizing for longer numbers.
 
-The custom monochrome Bryan’s Ace Hardware wordmark pairs store-name text with the bundled Ace artwork; it is not an exact reproduction of a supplied store logo. The bundled Ace artwork comes from the vector artwork in [Ace_Hardware_Logo.svg](https://github.com/rmwhaling/myoviedo/blob/master/images/Ace_Hardware_Logo.svg). The lettering is retained as vector paths and rendered in black for monochrome printing. Ace's trademark belongs to its owner.
+The current Bryan’s Ace Hardware logo is a cleaned monochrome version of the image supplied in chat. It retains the supplied Bryan’s / ACE / “The helpful place.” layout, with the screenshot frame and checkerboard removed and red converted to black for printing. The PNG is embedded directly in the generated SVG so preview, PDF, and printing do not depend on an external image request.
+
+The earlier Ace vector artwork came from [Ace_Hardware_Logo.svg](https://github.com/rmwhaling/myoviedo/blob/master/images/Ace_Hardware_Logo.svg). Ace’s trademark belongs to its owner.
